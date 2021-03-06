@@ -27,9 +27,9 @@ winston.add( winston.transports.File , { filename : 'logFile.log'});
 
 
 //   Loggin errors to MongoDB
-winston.add( winston.transports.MongoDB, {
-    db : `mongodb+srv://vidlyuser:admin1234@vidly.hsmmg.mongodb.net/vidlystore?retryWrites=true&w=majority`,
-    level : 'error'
-});
+// winston.add( winston.transports.MongoDB, {
+//     db : `mongodb+srv://vidlyuser:admin1234@vidly.hsmmg.mongodb.net/vidlystore?retryWrites=true&w=majority`,
+//     level : 'error'
+// });
 
 };
