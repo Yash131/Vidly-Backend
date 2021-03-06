@@ -1,0 +1,7 @@
+{
+ "jwtPrivateKey" : "vidly_jwtSecretKey",
+ "signupAccKey":"activationKey",
+ "password": "pass",
+ "test":"test",
+ "dbpass": ""
+}

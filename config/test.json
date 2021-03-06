@@ -1,0 +1,6 @@
+{
+    "jwtPrivateKey" : "1234",
+    "signupAccKey":"activationKey",
+    "db" : "mongodb://localhost/Vidly-Rentals_Test"
+
+}
