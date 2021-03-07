@@ -3,5 +3,6 @@
  "signupAccKey":"activationKey",
  "password": "pass",
  "test":"test",
- "db": "mongodb://localhost/Vidly-Rentals"
+ "db": "mongodb://localhost/Vidly-Rentals",
+ "frontendLink" : "http://localhost:4200"
 }

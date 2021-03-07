@@ -3,5 +3,6 @@
     "signupAccKey":"activationKey",
     "password" : "pass",
     "test":"test",
-    "db": "vidly_db"
+    "db": "vidly_db",
+    "frontendLink" : "frontendLink"
 }

@@ -44,37 +44,37 @@ router.get("/current", async (req, res) => {
 });
 
 // Registering/Creating a User
-router.post("/", async (req, res) => {
-  console.log(req.body);
-  const { error } = validate(req.body);
-  if (error) {
-    return res.status(400).send(error.details[0].message);
-  }
+// router.post("/", async (req, res) => {
+//   console.log(req.body);
+//   const { error } = validate(req.body);
+//   if (error) {
+//     return res.status(400).send(error.details[0].message);
+//   }
 
-  user = await User.findOne({ email: req.body.email });
-  if (user) {
-    return res.status(400).send("User Already Registered");
-  }
+//   user = await User.findOne({ email: req.body.email });
+//   if (user) {
+//     return res.status(400).send("User Already Registered");
+//   }
 
-  // user = new User({
-  //     name : req.body.name,
-  //     email : req.body.email,
-  //     password : req.body.password
-  // });
-  user = new User(
-    _.pick(req.body, ["name", "email", "password"])
-  ); /*Using lodash to simplify the object*/
+//   // user = new User({
+//   //     name : req.body.name,
+//   //     email : req.body.email,
+//   //     password : req.body.password
+//   // });
+//   user = new User(
+//     _.pick(req.body, ["name", "email", "password"])
+//   ); /*Using lodash to simplify the object*/
 
-  const salt = await bcrypt.genSalt(12);
-  user.password = await bcrypt.hash(user.password, salt);
-  user = await user.save();
+//   const salt = await bcrypt.genSalt(12);
+//   user.password = await bcrypt.hash(user.password, salt);
+//   user = await user.save();
 
-  const token = user.genrateAuthToken();
+//   const token = user.genrateAuthToken();
 
-  res
-    .header("Authorization", token)
-    .send(_.pick(user, ["_id", "name", "email", "isAdmin"]));
-});
+//   res
+//     .header("Authorization", token)
+//     .send(_.pick(user, ["_id", "name", "email", "isAdmin"]));
+// });
 
 // update password, needs current password for user password change
 
@@ -115,7 +115,7 @@ router.post("/updateUserInfo", auth, async (req, res) => {
     return res.status(400).send({ message: "user not found with provided ID" });
   }
 
-  console.log(req.body);
+  // console.log(req.body);
 
   if (name && !address && !mobile && !email) {
     user.name = name;
@@ -173,7 +173,7 @@ router.post("/signup", async (req, res) => {
   });
 
   // activation mail sending
-
+  // console.log(config.get(frontendLink))
   let obj = {
     to: email,
     subject: "Account Activation Email",
@@ -183,10 +183,11 @@ router.post("/signup", async (req, res) => {
     <p>Link is only valid for 20 Minutes</p>
     <p>First click on "click here" it will navigate you to our account activation page where you have to click on activate account button</p>
     <a href = "${
-      "http://localhost:4200/account-activation?token=" + token
+      config.get("frontendLink")+"/account-activation?token=" + token
     }" >Click Here</a>
     `,
   };
+  // console.log(obj)
   sendMail(mailConfig(obj), mailTransporter, res, req);
 });
 
@@ -253,7 +254,7 @@ router.post("/pass_reset_request", async (req, res) => {
     <p>Link is only valid for 20 Minutes</p>
     <p>First click on "click here" it will navigate you to our 'Password Reset' page.</p>
     <a href = "${
-      "http://localhost:4200/forgot-password?resetPass=" + token
+      config.get("frontendLink")+"/forgot-password?resetPass=" + token
     }" >Click Here</a>
     `,
   };
