@@ -3,5 +3,5 @@
  "signupAccKey":"activationKey",
  "password": "pass",
  "test":"test",
- "dbpass": ""
+ "db": "mongodb://localhost/Vidly-Rentals"
 }
