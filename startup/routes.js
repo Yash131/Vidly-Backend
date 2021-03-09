@@ -31,9 +31,11 @@ module.exports = function (app) {
   });
   app.use(require("cors")());
 
-  app.use( bodyParser.json() );
-  app.use(bodyParser.urlencoded({extended : true}))
-
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({
+    extended: true
+  }));
+  app.use('/uploads', require('express').static('uploads'));
 
 
 

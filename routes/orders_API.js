@@ -83,13 +83,25 @@ router.get("/order_counter", auth, async (req, res) => {
     return res.status(400).send("Invalid user ID.");
   }
 
-  let cancelledOrder = await Order.find({ "userDetails._id": userID,  "orderStatus": "Cancelled"})
-  let totalOrder = await Order.find({ "userDetails._id": userID})
+  let cancelledOrder = await Order.find({
+    "userDetails._id": userID,
+    orderStatus: "Cancelled",
+  });
+  let totalOrder = await Order.find({ "userDetails._id": userID });
+
+  let data = {
+    totalOrders: totalOrder.length,
+    cancelledOrders: cancelledOrder.length,
+  };
+
   if (!totalOrder.length) {
-    return res.status(200).send({ message: "No orders found!", data: order });
+    return res.status(201).send({ message: "No orders found!", data: data });
   }
 
-  res.send({ status: "Success", totalOrders : totalOrder.length, cancelledOrders : cancelledOrder.length});
+  return res.send({
+    status: "Success",
+    data: data,
+  });
 });
 
 module.exports = router;

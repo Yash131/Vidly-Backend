@@ -2,8 +2,10 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("config");
-const _ = require("lodash");
 const multer = require("multer");
+const _ = require("lodash");
+var cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const { User, validate } = require("../models/user_model");
 const {
@@ -14,16 +16,47 @@ const {
 const auth = require("../middlewares/auth");
 const admin = require("../middlewares/admin");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./uploads");
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + "-" + Date.now());
+cloudinary.config({
+  cloud_name: config.get("cloud_name"),
+  api_key: config.get("api_key"),
+  api_secret: config.get("api_secret"),
+});
+
+// const storage = CloudinaryStorage({
+//   cloudinary: cloudinary,
+//   folder: "Vidly-userImages",
+//   allowedFormats: ["jpg", "png"],
+//   transformation: [{ width: 500, height: 500, crop: "limit" }]
+//   });
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "Vidly-userImages",
+    allowedFormats: ["jpg", "png"],
+    transformation: [{ width: 500, height: 500, crop: "limit" }],
+    filename: (req, file) => file.originalname,
+    public_id: (req, file) => {
+      req.user._id;
+    },
   },
 });
 
-var upload = multer({ storage: storage });
+const upload = multer({ storage: storage });
+
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "./uploads");
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.originalname);
+//   },
+// });
+
+// const upload = multer({
+//   storage: storage,
+//   limits: { fileSize: 1024 * 1024 * 5 },
+// });
 
 // for getting all the users
 router.get("/", [auth, admin], async (req, res) => {
@@ -36,45 +69,12 @@ router.get("/current", async (req, res) => {
   const token = req.header("Authorization");
   res.cookie("test", "cookies_form_backend");
   const decodedToken = jwt.decode(token);
-  let user = await User.findById(decodedToken._id).select("-password");
+  let user = await User.findById(decodedToken?._id).select("-password");
   if (!user) {
     return res.status(400).send({ message: "user not found with provided ID" });
   }
   return res.status(200).send(user);
 });
-
-// Registering/Creating a User
-// router.post("/", async (req, res) => {
-//   console.log(req.body);
-//   const { error } = validate(req.body);
-//   if (error) {
-//     return res.status(400).send(error.details[0].message);
-//   }
-
-//   user = await User.findOne({ email: req.body.email });
-//   if (user) {
-//     return res.status(400).send("User Already Registered");
-//   }
-
-//   // user = new User({
-//   //     name : req.body.name,
-//   //     email : req.body.email,
-//   //     password : req.body.password
-//   // });
-//   user = new User(
-//     _.pick(req.body, ["name", "email", "password"])
-//   ); /*Using lodash to simplify the object*/
-
-//   const salt = await bcrypt.genSalt(12);
-//   user.password = await bcrypt.hash(user.password, salt);
-//   user = await user.save();
-
-//   const token = user.genrateAuthToken();
-
-//   res
-//     .header("Authorization", token)
-//     .send(_.pick(user, ["_id", "name", "email", "isAdmin"]));
-// });
 
 // update password, needs current password for user password change
 
@@ -136,16 +136,6 @@ router.post("/updateUserInfo", auth, async (req, res) => {
   }
 });
 
-// router.post('/profilePic', cors(), function(req,res,next){
-//   upload(req,res,function(err){
-//       if(err){
-//           return res.status(501).json({error:err});
-//       }
-//       //do all database record saving activity
-//       return res.json({originalname:req.file.originalname, uploadname:req.file.filename});
-//   });
-// });
-
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -183,7 +173,7 @@ router.post("/signup", async (req, res) => {
     <p>Link is only valid for 20 Minutes</p>
     <p>First click on "click here" it will navigate you to our account activation page where you have to click on activate account button</p>
     <a href = "${
-      config.get("frontendLink")+"/account-activation?token=" + token
+      config.get("frontendLink") + "/account-activation?token=" + token
     }" >Click Here</a>
     `,
   };
@@ -254,7 +244,7 @@ router.post("/pass_reset_request", async (req, res) => {
     <p>Link is only valid for 20 Minutes</p>
     <p>First click on "click here" it will navigate you to our 'Password Reset' page.</p>
     <a href = "${
-      config.get("frontendLink")+"/forgot-password?resetPass=" + token
+      config.get("frontendLink") + "/forgot-password?resetPass=" + token
     }" >Click Here</a>
     `,
   };
@@ -262,19 +252,20 @@ router.post("/pass_reset_request", async (req, res) => {
 });
 
 router.post("/reset_pass", async (req, res) => {
-
   const { token, password } = req.body;
-  
+
   jwt.verify(token, config.get("signupAccKey"), async function (err, decoded) {
-    if(err){
+    if (err) {
       console.log(err);
       return res.send(err.message);
-    }else{
+    } else {
       const { email } = decoded;
 
-      let user = await User.findOne({ email : email });
-      if(!user){
-        return res.status(400).send({message: "User not find with provided token"})
+      let user = await User.findOne({ email: email });
+      if (!user) {
+        return res
+          .status(400)
+          .send({ message: "User not find with provided token" });
       }
 
       const salt = await bcrypt.genSalt(12);
@@ -282,11 +273,33 @@ router.post("/reset_pass", async (req, res) => {
       user = await user.save();
 
       return res.send({
-        message: "Password reseted Successfully, Please login using your new password!",
+        message:
+          "Password reseted Successfully, Please login using your new password!",
       });
     }
-  })
-
+  });
 });
+
+router.post(
+  "/profilePic",
+  [auth, upload.single("profile")],
+  async (req, res) => {
+    const userID = req.user._id;
+
+    let user = await User.findById(userID).select("-password");
+    if (!user) {
+      return res
+        .status(400)
+        .send({ message: "User not find with provided token" });
+    }
+    user.photo = req.file.path;
+    user = await user.save();
+
+    return res.send({
+      message: "Profile Pic Uploaded Successfully",
+      data: user,
+    });
+  }
+);
 
 module.exports = router;
