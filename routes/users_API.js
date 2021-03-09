@@ -69,7 +69,7 @@ router.get("/current", async (req, res) => {
   const token = req.header("Authorization");
   res.cookie("test", "cookies_form_backend");
   const decodedToken = jwt.decode(token);
-  let user = await User.findById(decodedToken?._id).select("-password");
+  let user = await User.findById(decodedToken._id).select("-password");
   if (!user) {
     return res.status(400).send({ message: "user not found with provided ID" });
   }
