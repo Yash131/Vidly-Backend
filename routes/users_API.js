@@ -59,9 +59,9 @@ const upload = multer({ storage: storage });
 // });
 
 // for getting all the users
-router.get("/", [auth, admin], async (req, res) => {
-  const user = await User.find().select("-password").sort("name");
-  res.send(user);
+router.get("/all_users", [auth, admin], async (req, res) => {
+  const users = await User.find().select("-password").sort("name");
+  res.send({message:"success", data : users });
 });
 
 // For Getting Current LoggedIn User
