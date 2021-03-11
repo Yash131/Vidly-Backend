@@ -2,6 +2,7 @@ const router = require("express").Router();
 const { User } = require("../models/user_model");
 const { Order } = require("../models/order_model");
 const auth = require("../middlewares/auth");
+const admin = require("../middlewares/admin");
 
 router.post("/", auth, async (req, res) => {
   let {
@@ -102,6 +103,48 @@ router.get("/order_counter", auth, async (req, res) => {
     status: "Success",
     data: data,
   });
+});
+
+router.get("/all_orders", [auth, admin], async (req, res) => {
+
+  let allorders = await Order.find()
+  let liveorders = await Order.find({ orderStatus: "Placed" }).sort("-createdAt");
+
+  if (!liveorders.length || !allorders.length ) {
+    return res.status(404).send({ message: "No Order's Found!" });
+  }
+  res.send({
+    all_orders : allorders,
+    total_cancelled_orders: allorders.length - liveorders.length,
+    total_live_orders: liveorders.length,
+    all_live_orders: liveorders,
+    status: "success",
+  });
+});
+
+router.post("/cancel_order_by_id", [auth, admin], async (req, res) => {
+  const orderID = req.body.orderID;
+
+  let updateOrder = await Order.findOneAndUpdate(
+    { _id: orderID },
+    { orderStatus: "Cancelled" },
+    {
+      new: true,
+    }
+  );
+
+  if (!updateOrder) {
+    return res.status(404).send({ message: "Order not found" });
+  }
+  updateOrder = await updateOrder.save();
+
+  console.log(updateOrder.orderStatus);
+
+  return res.send({
+    message: "Order Cancelled Successfully",
+    data: updateOrder,
+  });
+
 });
 
 module.exports = router;
