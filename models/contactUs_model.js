@@ -21,7 +21,7 @@ const contactUsSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-});
+},{ timestamps: true });
 
 const ContactUs = mongoose.model("contact-Us", contactUsSchema);
 

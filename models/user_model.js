@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const { timestamp } = require("winston/lib/winston/common");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -24,7 +25,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-});
+},{ timestamps: true });
 
 userSchema.methods.genrateAuthToken = function () {
   return jwt.sign(

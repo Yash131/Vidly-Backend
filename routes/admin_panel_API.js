@@ -13,7 +13,7 @@ router.get("/basic_infos", [auth, admin], async (req, res) => {
   const orders = await Order.find();
   const messages = await ContactUs.find();
   const users = await User.find().select("-password");
-  const movies = await Movie.find().select(['title','numberInStock']);
+  const movies = await Movie.find().select(["title", "numberInStock"]);
 
   Order.aggregate([
     {
@@ -43,13 +43,34 @@ router.get("/basic_infos", [auth, admin], async (req, res) => {
         totalOrders: orders.length,
         totalMessages: messages.length,
         totalUsers: users.length,
-        movieQntyData : movies
+        movieQntyData: movies,
       };
 
       return res.send(obj);
     })
     .catch((e) => {
       return res.send(e);
+    });
+});
+
+router.get("/orderChart_data", [auth, admin], async (req, res) => {
+  // const startDate = "2021-03-10";
+  // const endDate = Date.now();
+  await Order.aggregate([
+    { $match: {} },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ])
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((e) => {
+      res.send(e);
     });
 });
 

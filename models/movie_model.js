@@ -52,7 +52,7 @@ const Movie = mongoose.model(
       type : Boolean,
       default : false
     }
-  })
+  },{ timestamps: true })
 );
 
 function validateMovie(movie) {
